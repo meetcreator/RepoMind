@@ -85,9 +85,10 @@ Open **http://localhost:3000**
 
 ## Vercel deployment
 
-The root [`vercel.json`](vercel.json) deploys the **Next.js frontend** from
-`frontend/`. Import the repository as a Vercel project with the repository
-root as its Root Directory.
+The [`frontend/vercel.json`](frontend/vercel.json) deploys the **Next.js
+frontend**. When importing this repository, set Vercel's **Root Directory** to
+`frontend`; Vercel will then find the Next.js dependency in
+`frontend/package.json` and use its standard build settings.
 
 Set these Vercel environment variables:
 
