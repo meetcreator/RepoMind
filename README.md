@@ -100,6 +100,9 @@ Set these Vercel environment variables:
 - `NEXT_PUBLIC_API_URL` — the public URL of the separately deployed FastAPI
   backend
 
+Set the GitHub OAuth App homepage to your Vercel URL and its callback URL to
+`https://<your-vercel-domain>/api/auth/callback/github`.
+
 Vercel cannot host this project's persistent Docker services (Neo4j, Redis,
 ChromaDB, Ollama, or the RQ worker). Deploy the backend and its dependencies
 to a container-capable platform, set its `CORS_ORIGINS` variable to the Vercel

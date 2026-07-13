@@ -2,22 +2,31 @@ import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 
-const isDev =
-  process.env.NODE_ENV === "development" ||
-  !process.env.GITHUB_CLIENT_ID ||
-  process.env.GITHUB_CLIENT_ID === "your_github_client_id_here";
+const githubClientId = process.env.GITHUB_CLIENT_ID;
+const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
+const hasGitHubCredentials = Boolean(
+  githubClientId &&
+    githubClientSecret &&
+    githubClientId !== "your_github_client_id_here" &&
+    githubClientSecret !== "your_github_client_secret_here",
+);
+const isDevelopment = process.env.NODE_ENV === "development";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID ?? "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
-      authorization: {
-        params: { scope: "read:user repo" },
-      },
-    }),
-    // Dev-bypass: lets you sign in without a real GitHub OAuth App
-    ...(isDev
+    ...(hasGitHubCredentials
+      ? [
+          GithubProvider({
+            clientId: githubClientId!,
+            clientSecret: githubClientSecret!,
+            authorization: {
+              params: { scope: "read:user repo" },
+            },
+          }),
+        ]
+      : []),
+    // Dev-bypass is deliberately restricted to local development.
+    ...(isDevelopment
       ? [
           CredentialsProvider({
             id: "dev-login",
@@ -55,4 +64,3 @@ export const authOptions: NextAuthOptions = {
     error: "/login",
   },
 };
-
