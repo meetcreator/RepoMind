@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+import re
+from urllib.parse import urlparse
 
 import httpx
 
@@ -67,9 +69,13 @@ def clone_repo(clone_url: str, dest_dir: str, token: str | None = None) -> None:
 
 
 def parse_github_url(url: str) -> tuple[str, str]:
-    """Return (owner, repo) from a GitHub URL."""
-    url = url.rstrip("/").removesuffix(".git")
-    parts = url.split("github.com/")[-1].split("/")
-    if len(parts) < 2:
-        raise ValueError(f"Cannot parse GitHub URL: {url}")
+    """Return (owner, repo) from a canonical public GitHub repository URL."""
+    parsed = urlparse(url.strip())
+    if parsed.scheme != "https" or parsed.netloc.lower() not in {"github.com", "www.github.com"}:
+        raise ValueError("Use an HTTPS GitHub URL, for example https://github.com/owner/repo")
+
+    parts = [part for part in parsed.path.rstrip("/").removesuffix(".git").split("/") if part]
+    if len(parts) != 2 or any(not re.fullmatch(r"[A-Za-z0-9_.-]+", part) for part in parts):
+        raise ValueError("Use a GitHub repository URL in the form https://github.com/owner/repo")
+
     return parts[0], parts[1]
