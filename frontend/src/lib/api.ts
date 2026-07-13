@@ -9,7 +9,12 @@ import type {
   RepoStatus,
 } from "@/types";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+// A browser running on Vercel cannot reach a backend on the developer's
+// computer. Use the local API only during local development; production uses
+// mock mode until NEXT_PUBLIC_API_URL points at a deployed API.
+const BASE =
+  process.env.NEXT_PUBLIC_API_URL ??
+  (process.env.NODE_ENV === "development" ? "http://localhost:8080" : "");
 
 // Simple local state for mocked repos so additions persist
 const getMockRepos = (): Repo[] => {
@@ -98,13 +103,13 @@ function getMockData<T>(path: string, init?: RequestInit): T {
     const repos = getMockRepos();
     const repo = repos.find((r) => r.id === id) || repos[0];
     return {
-      repo_id: id,
-      files_count: 36,
-      functions_count: 148,
-      classes_count: 14,
-      issues_count: 3,
-      health_score: 88,
-      tech_stack: ["TypeScript", "Next.js", "TailwindCSS"],
+      stats: {
+        total_files: 36,
+        total_functions: 148,
+        total_classes: 14,
+        total_issues: 3,
+        health_score: 88,
+      },
       architecture_summary: `Dependency structure and API endpoints of ${repo?.owner}/${repo?.name}. Uses modern routing layers and modular architectures.`,
       mermaid_diagram: `graph TD
   Layout[layout.tsx] --> Home[page.tsx]
@@ -213,6 +218,11 @@ Streams chat answers from the AI using Server-Sent Events (SSE).
 }
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
+  if (!BASE) {
+    console.warn(`No deployed backend configured. Using local mock data for: ${path}`);
+    return getMockData<T>(path, init);
+  }
+
   try {
     const res = await fetch(`${BASE}/api${path}`, {
       headers: { "Content-Type": "application/json" },
@@ -277,6 +287,26 @@ export function streamChat(
   onDone: () => void,
   onError: (e: string) => void,
 ): () => void {
+  if (!BASE) {
+    const simulatedTokens = [
+      "In mock mode, here's how the file structure behaves: ",
+      "\n\n",
+      "The repository uses Next.js 14 and Tailwind for layout composition. ",
+      "Configure NEXT_PUBLIC_API_URL with a deployed backend URL to analyze real repositories.",
+    ];
+    let tokenIdx = 0;
+    const interval = setInterval(() => {
+      if (tokenIdx < simulatedTokens.length) {
+        onToken(simulatedTokens[tokenIdx] + " ");
+        tokenIdx++;
+      } else {
+        clearInterval(interval);
+        onDone();
+      }
+    }, 150);
+    return () => clearInterval(interval);
+  }
+
   const ctrl = new AbortController();
 
   fetch(`${BASE}/api/repos/${repoId}/chat`, {
