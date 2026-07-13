@@ -6,9 +6,12 @@ const authMiddleware = withAuth({
 });
 
 export default function middleware(request: NextRequest, event: NextFetchEvent) {
-  // Demo mode is for the mock-data deployment only. Never enable it alongside
-  // a backend that exposes real repositories or user data.
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") {
+  // Public-repository mode intentionally bypasses user login. The backend must
+  // enforce PUBLIC_REPOSITORIES_ONLY when this is enabled.
+  if (
+    process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
+    process.env.NEXT_PUBLIC_PUBLIC_REPOSITORIES_MODE === "true"
+  ) {
     return NextResponse.next();
   }
 

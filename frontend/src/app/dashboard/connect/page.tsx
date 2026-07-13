@@ -9,6 +9,8 @@ const EXAMPLES = [
   "https://github.com/expressjs/express",
   "https://github.com/golang/group",
 ];
+const publicRepositoriesMode =
+  process.env.NEXT_PUBLIC_PUBLIC_REPOSITORIES_MODE === "true";
 
 export default function ConnectPage() {
   const router = useRouter();
@@ -36,7 +38,9 @@ export default function ConnectPage() {
       <div style={{ maxWidth: "560px", margin: "3rem auto", padding: "0 1.5rem" }}>
         <h1 style={{ marginBottom: "0.5rem", fontSize: "1.25rem" }}>Connect a repository</h1>
         <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "1.75rem" }}>
-          Paste the GitHub URL of any public repository, or a private one you have access to.
+          {publicRepositoriesMode
+            ? "Paste the GitHub URL of any public repository. Private repositories are not supported."
+            : "Paste the GitHub URL of any public repository, or a private one you have access to."}
         </p>
 
         <form onSubmit={submit} className="card" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

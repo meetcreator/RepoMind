@@ -34,11 +34,25 @@ async def add_repo(
     body: RepoCreateRequest,
     session: Session = Depends(get_session),
 ):
-    owner, name = parse_github_url(body.github_url)
+    try:
+        owner, name = parse_github_url(body.github_url)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     try:
         meta = await get_repo_meta(owner, name)
     except Exception:
+        if settings.public_repositories_only:
+            raise HTTPException(
+                status_code=400,
+                detail="Only publicly accessible GitHub repositories can be analyzed.",
+            )
         meta = {"clone_url": f"https://github.com/{owner}/{name}.git", "default_branch": "main"}
+
+    if settings.public_repositories_only and meta.get("private", True):
+        raise HTTPException(
+            status_code=400,
+            detail="Only public GitHub repositories can be analyzed.",
+        )
 
     repo = Repo(
         github_url=body.github_url,

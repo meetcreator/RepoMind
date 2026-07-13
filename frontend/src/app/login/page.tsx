@@ -14,6 +14,8 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 const isDevelopment = process.env.NODE_ENV === "development";
 const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+const publicRepositoriesMode =
+  process.env.NEXT_PUBLIC_PUBLIC_REPOSITORIES_MODE === "true";
 
 export default function LoginPage() {
   return (
@@ -84,14 +86,18 @@ function LoginContent() {
           </button>
         ) : githubEnabled === false ? (
           <div style={{ marginBottom: "0.75rem" }}>
-            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginBottom: demoMode ? "0.75rem" : 0 }}>
+            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginBottom: (demoMode || publicRepositoriesMode) ? "0.75rem" : 0 }}>
               GitHub sign-in has not been configured for this deployment.
             </p>
-            {demoMode && (
+            {publicRepositoriesMode ? (
+              <Link href="/dashboard" className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }}>
+                Continue with public repositories
+              </Link>
+            ) : demoMode ? (
               <Link href="/dashboard" className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }}>
                 Continue in demo mode
               </Link>
-            )}
+            ) : null}
           </div>
         ) : null}
 

@@ -111,6 +111,19 @@ To demonstrate the frontend without GitHub login or a deployed backend, set
 public. Do not enable demo mode when the backend exposes real repositories or
 user data.
 
+### Public repositories without login
+
+To analyze real public GitHub repositories without user login, deploy the
+backend stack separately and configure:
+
+- Vercel: `NEXT_PUBLIC_PUBLIC_REPOSITORIES_MODE=true` and
+  `NEXT_PUBLIC_API_URL=https://<your-backend-domain>`
+- Backend: `PUBLIC_REPOSITORIES_ONLY=true` and `CORS_ORIGINS` set to the
+  Vercel frontend URL
+
+This mode rejects private or inaccessible repositories. It is intended for a
+trusted demonstration deployment; add rate limiting before exposing it widely.
+
 Vercel cannot host this project's persistent Docker services (Neo4j, Redis,
 ChromaDB, Ollama, or the RQ worker). Deploy the backend and its dependencies
 to a container-capable platform, set its `CORS_ORIGINS` variable to the Vercel

@@ -22,6 +22,7 @@ class Settings(BaseSettings):
 
     groq_api_key: str = ""
 
+    public_repositories_only: bool = False
     cors_origins: str = "http://localhost:3000"
 
     repo_clone_dir: str = "/tmp/repos"
