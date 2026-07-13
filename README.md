@@ -83,6 +83,29 @@ Open **http://localhost:3000**
 
 ---
 
+## Vercel deployment
+
+The root [`vercel.json`](vercel.json) deploys the **Next.js frontend** from
+`frontend/`. Import the repository as a Vercel project with the repository
+root as its Root Directory.
+
+Set these Vercel environment variables:
+
+- `NEXTAUTH_URL` — your deployed Vercel URL (for example,
+  `https://repomind.vercel.app`)
+- `NEXTAUTH_SECRET`
+- `GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET`
+- `NEXT_PUBLIC_API_URL` — the public URL of the separately deployed FastAPI
+  backend
+
+Vercel cannot host this project's persistent Docker services (Neo4j, Redis,
+ChromaDB, Ollama, or the RQ worker). Deploy the backend and its dependencies
+to a container-capable platform, set its `CORS_ORIGINS` variable to the Vercel
+URL, and point `NEXT_PUBLIC_API_URL` at that backend.
+
+---
+
 ## Verifying each service is healthy
 
 | Service | URL | Expected |
