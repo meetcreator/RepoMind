@@ -103,6 +103,14 @@ Set these Vercel environment variables:
 Set the GitHub OAuth App homepage to your Vercel URL and its callback URL to
 `https://<your-vercel-domain>/api/auth/callback/github`.
 
+### Optional public demo mode
+
+To demonstrate the frontend without GitHub login or a deployed backend, set
+`NEXT_PUBLIC_DEMO_MODE=true` in Vercel for the desired environment and leave
+`NEXT_PUBLIC_API_URL` unset. This enables mock data and makes protected pages
+public. Do not enable demo mode when the backend exposes real repositories or
+user data.
+
 Vercel cannot host this project's persistent Docker services (Neo4j, Redis,
 ChromaDB, Ollama, or the RQ worker). Deploy the backend and its dependencies
 to a container-capable platform, set its `CORS_ORIGINS` variable to the Vercel

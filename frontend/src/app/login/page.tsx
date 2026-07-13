@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useState } from "react";
-import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
+import { getProviders, signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
@@ -11,6 +12,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   OAuthAccountNotLinked: "Account already linked to another sign-in.",
   default: "An error occurred during sign in.",
 };
+const isDevelopment = process.env.NODE_ENV === "development";
+const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 export default function LoginPage() {
   return (
@@ -26,10 +29,17 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const [devLoading, setDevLoading] = useState(false);
+  const [githubEnabled, setGithubEnabled] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (session) router.replace("/dashboard");
   }, [session, router]);
+
+  useEffect(() => {
+    getProviders()
+      .then((providers) => setGithubEnabled(Boolean(providers?.github)))
+      .catch(() => setGithubEnabled(false));
+  }, []);
 
   const handleDevLogin = async () => {
     setDevLoading(true);
@@ -63,14 +73,27 @@ function LoginContent() {
           </div>
         )}
 
-        <button
-          className="btn btn-primary"
-          style={{ width: "100%", justifyContent: "center", gap: "0.5rem", padding: "0.625rem", marginBottom: "0.75rem" }}
-          onClick={() => signIn("github")}
-        >
-          <GitHubIcon />
-          Sign in with GitHub
-        </button>
+        {githubEnabled ? (
+          <button
+            className="btn btn-primary"
+            style={{ width: "100%", justifyContent: "center", gap: "0.5rem", padding: "0.625rem", marginBottom: "0.75rem" }}
+            onClick={() => signIn("github")}
+          >
+            <GitHubIcon />
+            Sign in with GitHub
+          </button>
+        ) : githubEnabled === false ? (
+          <div style={{ marginBottom: "0.75rem" }}>
+            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginBottom: demoMode ? "0.75rem" : 0 }}>
+              GitHub sign-in has not been configured for this deployment.
+            </p>
+            {demoMode && (
+              <Link href="/dashboard" className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }}>
+                Continue in demo mode
+              </Link>
+            )}
+          </div>
+        ) : null}
 
         {/* Dev bypass — shown when real OAuth isn't configured */}
         <button
@@ -87,7 +110,7 @@ function LoginContent() {
             opacity: devLoading ? 0.7 : 1,
           }}
           onClick={handleDevLogin}
-          disabled={devLoading}
+          disabled={!isDevelopment || devLoading}
         >
           {devLoading ? "Signing in…" : "⚡ Dev Login (no credentials needed)"}
         </button>
