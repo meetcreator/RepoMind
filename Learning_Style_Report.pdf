@@ -1,0 +1,54 @@
+# RepoMind — Build Tasks
+
+## Milestone 1 — Scaffold
+- [x] docker-compose.yml
+- [x] .env.example
+- [x] scripts/ollama-entrypoint.sh
+- [x] backend/Dockerfile + requirements.txt
+- [x] backend/config.py
+- [x] backend/main.py (/health endpoint)
+- [x] backend/models/schemas.py
+- [x] backend/database/* (neo4j, chroma, sqlite)
+- [x] backend/services/* (github, parser, embedder, llm, graphrag, analyzer)
+- [x] backend/workers/ingestion.py
+- [x] backend/routers/* (repos, chat, issues, docs, prs)
+- [x] Initialize Next.js 14 frontend (scaffolded, npm install running)
+- [x] tailwind config + globals.css design system
+- [x] README.md
+
+## Milestone 2 — Auth
+- [ ] NextAuth.js + GitHub OAuth
+- [ ] Protected route middleware
+- [ ] Login page, session persisted
+
+## Milestone 3 — Ingestion Pipeline
+- [ ] POST /api/repos → RQ enqueue
+- [ ] Worker: clone → parse → Neo4j write
+- [ ] GET /api/repos/{id}/status
+
+## Milestone 4 — Embeddings
+- [ ] Chunk by function/class boundary
+- [ ] Embed via Ollama → ChromaDB
+- [ ] Link chunkId ↔ Neo4j node id
+
+## Milestone 5 — Static Analysis
+- [ ] Run ruff, bandit, ESLint, semgrep, lizard
+- [ ] Store in SQLite
+- [ ] /repo/[id]/issues page
+
+## Milestone 6 — Graph UI
+- [ ] GET /api/repos/{id}/graph → React Flow JSON
+- [ ] /repo/[id]/graph interactive page
+
+## Milestone 7 — Chat / GraphRAG
+- [ ] Full pipeline: embed → Chroma → Neo4j expand → LLM stream
+- [ ] /repo/[id]/chat SSE page
+
+## Milestone 8 — Docs + PR Review
+- [ ] Doc generation per function/class
+- [ ] PR diff + AI comments
+
+## Milestone 9 — Polish
+- [ ] Full design system applied
+- [ ] Console errors fixed
+- [ ] README complete

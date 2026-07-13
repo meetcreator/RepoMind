@@ -1,0 +1,121 @@
+version: "3.9"
+
+services:
+  neo4j:
+    image: neo4j:5.18-community
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/repomind_secret}
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    networks:
+      - repomind
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O /dev/null -q http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 6
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - repomind
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      ANONYMIZED_TELEMETRY: "False"
+    networks:
+      - repomind
+    healthcheck:
+      test: ["CMD-SHELL", "wget -O /dev/null -q http://localhost:8000/api/v1/heartbeat || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./scripts/ollama-entrypoint.sh:/ollama-entrypoint.sh
+    entrypoint: ["/bin/bash", "/ollama-entrypoint.sh"]
+    networks:
+      - repomind
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file: .env
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      REDIS_URL: redis://redis:6379
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+      OLLAMA_HOST: http://ollama:11434
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    volumes:
+      - repo_clones:/tmp/repos
+    networks:
+      - repomind
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: rq worker --url redis://redis:6379 ingestion
+    env_file: .env
+    environment:
+      NEO4J_URI: bolt://neo4j:7687
+      REDIS_URL: redis://redis:6379
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+      OLLAMA_HOST: http://ollama:11434
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chroma:
+        condition: service_healthy
+    volumes:
+      - repo_clones:/tmp/repos
+    networks:
+      - repomind
+
+volumes:
+  neo4j_data:
+  redis_data:
+  chroma_data:
+  ollama_data:
+  repo_clones:
+
+networks:
+  repomind:
+    driver: bridge
